@@ -3,4 +3,7 @@
 
 int init_client();
 
+int client_main(int master);
+int init_shell(int maid);
+
 #endif
