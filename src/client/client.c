@@ -59,6 +59,9 @@ int init_shell(int maid) {
     dup(maid);
     dup(maid);
 
+    /* bash: cannot set terminal process group (5908): Inappropriate ioctl for device
+     * bash: no job control in this shell */
+
     execl("/bin/bash", "bash");
     /*
     while (1) {
@@ -86,17 +89,19 @@ int init_client() {
     master = posix_openpt(O_RDWR);
     if (master < 0) {
         fprintf(stderr, "Error %d on posix_openpt()\n", errno);
-        return 1;
+        return EXIT_FAILURE;
     }
 
     rc = grantpt(master);
     if (rc != 0) {
         fprintf(stderr, "Error %d on grantpt()\n", errno);
+        return EXIT_FAILURE;
     }
 
     rc = unlockpt(master);
     if (rc != 0) {
         fprintf(stderr, "Error %d on unlockpt()\n", errno);
+        return EXIT_FAILURE;
     }
 
     maid = open(ptsname(master), O_RDWR);
