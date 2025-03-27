@@ -20,7 +20,7 @@ void intlist_free(IntList *list) {
 
 uint64_t intlist_get(IntList *list, int32_t index) {
     if (index >= list->len || index < 0) {
-        return UINT64_MAX;
+        return INT32_MIN;
     }
 
     return *(list->items + index);

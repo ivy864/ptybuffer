@@ -28,7 +28,7 @@ IntList *intlist_init(int32_t size);
 void intlist_free(IntList *list);
 
 /**
- * Get item from specified index 
+ * Get item from specified index. Returns INT32_MIN on eror
  */
 uint64_t intlist_get(IntList *list, int32_t index);
 
