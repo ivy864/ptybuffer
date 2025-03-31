@@ -5,26 +5,12 @@
 #include <errno.h>
 #include <unistd.h>
 #include "server.h"
+#include "../util/utils.h"
 
 #define __USE_MISC
 #include <sys/un.h>
 
-// alocate uninitialized server
-PtybServer *server_alloc() {
-    PtybServer *server = malloc(sizeof(PtybServer));
-    server->addr = malloc(sizeof(struct sockaddr_un));
 
-    return server;
-}
-
-/**
- * Free server and close socket.
- */
-void server_free(PtybServer *server) {
-    free(server->addr);
-    close(server->sock);
-    free(server);
-}
 
 int server_main(PtybServer *server) {
     char buffer [1024];
@@ -40,7 +26,7 @@ int server_main(PtybServer *server) {
             fprintf(stderr, "Error %d on connection()\n", errno);
         }
 
-        while(read(connection, buffer, 1023) == 1023) {
+        while(read(connection, buffer, 1023) != 0) {
             buffer[1023] = '\0';
             printf("%s", buffer);
         }
@@ -54,7 +40,7 @@ int server_main(PtybServer *server) {
 }
 
 PtybServer *init_server(char *socket_domain) {
-    PtybServer *server = server_alloc();
+    PtybServer *server = ptybserver_alloc();
 
     server->sock = socket(AF_LOCAL, SOCK_STREAM, 0);
 
@@ -72,8 +58,14 @@ PtybServer *init_server(char *socket_domain) {
     server->addr->sun_family = AF_UNIX;
     strncpy(server->addr->sun_path, socket_domain, sizeof(server->addr->sun_path));
 
-    if (bind(server->sock, (struct sockaddr *) &server->addr, SUN_LEN(server->addr)) < 0) {
+    struct sockaddr *eek = (struct sockaddr *) server->addr;
+
+
+// (struct sockaddr *) server->addr
+    if (bind(server->sock, eek, SUN_LEN(server->addr)) < 0) {
         fprintf(stderr, "Error %d on bind()\n", errno);
+        fprintf(stderr, "%s\n", strerror(errno));
+
         exit(EXIT_FAILURE);
     }
 
@@ -81,10 +73,10 @@ PtybServer *init_server(char *socket_domain) {
 }
 
 int start_server(char *domain) {
-    if (fork() == 0) {
+    //if (fork() == 0) {
         PtybServer *server = init_server(domain);
         exit(server_main(server));
-    }
+    //}
 
     return 0;
 }
