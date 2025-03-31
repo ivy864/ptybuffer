@@ -1,6 +1,7 @@
 #ifndef PTYB_CLIENT_INCLUDED
 #define PTYB_CLIENT_INCLUDED
 
+int ptyb_message_server(char *socket_domain, char *message);
 int init_client();
 
 int client_main(int master);

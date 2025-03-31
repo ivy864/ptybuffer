@@ -7,10 +7,10 @@
 #include <unistd.h>
 
 #define __USE_MISC
-#include <termios.h>
 #include "client.h"
+#include <termios.h>
 
-int client_main(int master) { 
+int client_main(int master) {
     char input[1024];
     int rc = 0;
 
@@ -25,6 +25,7 @@ int client_main(int master) {
             if (rc > 0) {
                 input[rc] = '\0';
 
+                ptyb_message_server("/run/user/1000/ptyb.sock", input);
                 fprintf(stderr, "%s", input);
             }
             else {
@@ -35,7 +36,8 @@ int client_main(int master) {
             break;
         }
     }
-    return EXIT_SUCCESS; 
+
+    return EXIT_SUCCESS;
 }
 
 int init_shell(int maid) {
@@ -59,8 +61,8 @@ int init_shell(int maid) {
     dup(maid);
     dup(maid);
 
-    /* bash: cannot set terminal process group (5908): Inappropriate ioctl for device
-     * bash: no job control in this shell */
+    /* bash: cannot set terminal process group (5908): Inappropriate ioctl for
+     * device bash: no job control in this shell */
 
     execl("/bin/bash", "bash");
     /*
@@ -107,13 +109,12 @@ int init_client() {
     maid = open(ptsname(master), O_RDWR);
 
     if (fork()) {
-        close(maid);
-        client_main(master);
-    }
-    else {
         close(master);
         init_shell(maid);
     }
+
+    close(maid);
+    client_main(master);
 
     return 0;
 }
