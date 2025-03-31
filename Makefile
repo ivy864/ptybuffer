@@ -11,6 +11,7 @@ OBJS= \
 	  $(BUILDDIR)/client.o \
 	  $(BUILDDIR)/server.o \
 	  $(BUILDDIR)/connect.o \
+	  $(BUILDDIR)/utils.o
 
 all: ptyb
 
