@@ -10,10 +10,13 @@
 #define __USE_MISC
 #include <sys/un.h>
 
-
-
 int server_main(PtybServer *server) {
     char buffer [1024];
+    // number of connected clients
+    uint32_t clients = 0;
+    // id of connected client
+    int32_t conid;
+    uint32_t mtype;
 
     listen(server->sock, 5);
 
@@ -26,12 +29,39 @@ int server_main(PtybServer *server) {
             fprintf(stderr, "Error %d on connection()\n", errno);
         }
 
-        while(read(connection, buffer, 1023) != 0) {
-            buffer[1023] = '\0';
-            printf("%s", buffer);
+        read(connection, &conid, 4);
+        /* -1 means a message has been sent
+         * message format: 
+         * 32 bits: message type
+         * 32 bits: relevant client
+         */
+        if (conid == -1) {
+            read(connection, &mtype, 4);
+            read(connection, &conid, 4);
+            
+            switch (mtype) {
+                case PTYBMSSG_CLIENT_ATTACH: 
+                    send(connection, &clients, sizeof(clients), 0);
+                    printf("client connected with number %d\n", clients);
+                    clients += 1;
+                    break;
+                case PTYBMSSG_CLIENT_DETACH:
+                    clients -= 1;
+                    if (clients <= 0) {
+                        ptybserver_free(server);
+                        exit(0);
+                    }
+                    break;
+            }
         }
 
-        printf("%s\n", buffer);
+        while(read(connection, buffer, 1023) != 0) {
+            buffer[1023] = '\0';
+            printf("%s\n", buffer);
+        }
+
+        printf("\n");
+        //printf("%s\n", buffer);
 
         close(connection);
     }

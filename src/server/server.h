@@ -13,4 +13,9 @@ PtybServer *init_server(char *socket_domain);
  */
 int start_server(char *domain);
 
+// message types
+#define PTYBMSSG_CLIENT_ATTACH 1
+#define PTYBMSSG_CLIENT_DETACH 2
+
+
 #endif
