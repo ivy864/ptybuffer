@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
             //ptybserver_sock_init(server, sock_domain);
             //server_connect("/home/horse/Repos/ptybuffer/sock");
             //server_connect(sock_domain);
-            return init_client();
+            return init_client(sock_domain);
         }
         else if (strcmp(argv[1], "start_server") == 0) {
             return start_server(sock_domain);
