@@ -26,6 +26,7 @@ int client_main(int master) {
         FD_SET(0, &fd_in);
         FD_SET(master, &fd_in);
 
+        // TODO: use that other function. see select man page
         rc = select(master + 1, &fd_in, NULL, NULL, NULL);
 
         if (rc == -1) {
@@ -38,6 +39,7 @@ int client_main(int master) {
                 if (rc > 0) {
                     write(master, input, rc);
                     write(1, input, rc);
+                    ptyb_message_server("/run/user/1000/ptyb.sock", input);
                 }
                 else {
                     if (rc < 0) {
@@ -97,10 +99,7 @@ int init_shell(int maid) {
     /* bash: cannot set terminal process group (5908): Inappropriate ioctl for
      * device bash: no job control in this shell */
 
-    {
-        execlp("bash", "bash");
-    }
-    printf("...?\n");
+    execlp("bash", "bash");
 
     return(EXIT_FAILURE);
 }
@@ -111,8 +110,8 @@ int init_shell(int maid) {
 int init_client(char *sock_domain) {
     // 'maid' is used in place of 'slave' because I think slave is a weird name
     int master, maid, rc;
-    //uint32_t cid = ptyb_get_cid(sock_domain);
-    //printf("client recieved cid %d.\n", cid);
+    uint32_t cid = ptyb_get_cid(sock_domain);
+    printf("client recieved cid %d.\n", cid);
 
     master = posix_openpt(O_RDWR);
     if (master < 0) {
@@ -132,10 +131,7 @@ int init_client(char *sock_domain) {
         return EXIT_FAILURE;
     }
 
-
-    printf("meow\n");
     maid = open(ptsname(master), O_RDWR);
-    printf("maid: %d\n", maid);
 
     if (fork()) {
         close(maid);
