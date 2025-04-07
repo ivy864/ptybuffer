@@ -11,7 +11,8 @@ OBJS= \
 	  $(BUILDDIR)/client.o \
 	  $(BUILDDIR)/server.o \
 	  $(BUILDDIR)/connect.o \
-	  $(BUILDDIR)/utils.o
+	  $(BUILDDIR)/utils.o \
+	  $(BUILDDIR)/buffer.o
 
 all: ptyb
 
@@ -24,8 +25,10 @@ $(BUILDDIR)/client.o: $(BUILDDIR) $(CLIENTSRC)/client.c $(CLIENTSRC)/client.h $(
 $(BUILDDIR)/connect.o: $(BUILDDIR) 
 	$(CC) -c $(CLIENTSRC)/connect.c -o $(BUILDDIR)/connect.o $(CFLAGS)
 
-$(BUILDDIR)/server.o: $(BUILDDIR) $(SERVERSRC)/server.c $(SERVERSRC)/server.h
+$(BUILDDIR)/server.o: $(BUILDDIR) $(SERVERSRC)/server.c $(SERVERSRC)/server.h $(BUILDDIR)/buffer.o
 	$(CC) -c $(SERVERSRC)/server.c -o $(BUILDDIR)/server.o $(CFLAGS)
+
+$(BUILDDIR)/buffer.o: $(BUILDDIR) $(SERVERSRC)/buffer.c $(SERVERSRC)/server.h
 
 utiltest: $(UTILSRC)/utiltest.c
 
