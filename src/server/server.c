@@ -18,6 +18,8 @@ int server_main(PtybServer *server) {
     int32_t conid;
     uint32_t mtype;
 
+    PtybBuffer *client_buffer = ptyb_init_buffer(0);
+
     listen(server->sock, 5);
 
     socklen_t addr_len = SUN_LEN(server->addr);
@@ -52,16 +54,29 @@ int server_main(PtybServer *server) {
                         exit(0);
                     }
                     break;
+                case PTYBMSSG_WRITE_BUFFER:
+                    ptyb_write_buffer(client_buffer);
+                    break;
             }
         }
+        else {
+            int bytes = read(connection, buffer, 1023);
+            //ptyb_buffer_free(client_buffer);
+            //client_buffer = ptyb_init_buffer(0);
 
-        while(read(connection, buffer, 1023) != 0) {
-            buffer[1023] = '\0';
-            printf("%s\n", buffer);
+            buffer[bytes - 1] = '\0';
+            ptyb_buffer_insert(client_buffer, buffer);
+            
         }
 
-        printf("\n");
-        //printf("%s\n", buffer);
+        PtybBuffer *b = client_buffer;
+
+        printf("Buffer contents: ");
+        while (b != NULL) {
+            printf("%s", b->chunk);
+            b = b->next;
+        }
+        printf("\n\n");
 
         close(connection);
     }

@@ -34,8 +34,6 @@ int32_t ptyb_get_next_pid(PtybBufferList *list) {
      * list->buffer == null
      */
 
-
-
     return pid;
 }
 
@@ -74,4 +72,18 @@ int ptyb_buffer_insert(PtybBuffer *buffer, char *text) {
     }
     
     return 0;
+}
+
+void ptyb_buffer_free(PtybBuffer *buffer) {
+    if (buffer == NULL) {
+        return;
+    }
+
+    PtybBuffer *next = buffer->next;
+
+    while(buffer != NULL) {
+        next = buffer->next;
+        free(buffer);
+        buffer = next;
+    }
 }
