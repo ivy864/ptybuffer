@@ -11,4 +11,9 @@ int server_connect(char *sock_domain);
 int ptyb_message_server(char *sock_domain, char *message);
 int ptyb_get_cid(char *sock_domain);
 
+/*
+ * send write_buffer signal to server
+ */
+void ptyb_msg_write_buffer(char *sock_domain);
+
 #endif

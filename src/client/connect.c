@@ -49,31 +49,13 @@ int ptyb_get_cid(char *sock_domain) {
     return cid;
 }
 
-int server_connect(char *socket_domain) {
-    struct sockaddr_un addr;
-    int sock = socket(AF_LOCAL, SOCK_STREAM, 0);
+void ptyb_msg_write_buffer(char *sock_domain) {
+    PtybServer *server = ptyb_client_connect(sock_domain);
+    int32_t m = -1;
 
-    if (sock < 0) {
-        fprintf(stderr, "Error %d on socket()\n", errno);
-        exit(EXIT_FAILURE);
-    }
-
-    if (strlen(socket_domain) > sizeof(addr.sun_path) - 1) {
-        fprintf(stderr, "Server socket path too long.");
-        exit(EXIT_FAILURE);
-    }
-
-    memset(&addr, 0, sizeof(struct sockaddr_un));
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, socket_domain, sizeof(addr.sun_path));
-
-    if (connect(sock, (struct sockaddr *) &addr, SUN_LEN(&addr)) < 0) {
-        fprintf(stderr, "Error %d on connect()\n%s\n", errno, strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    send(sock, "meow\n", strlen("meow"), 0);
-    close(sock);
-
-    return 0;
+    send(server->sock, &m, sizeof(m), 0);
+    m = PTYBMSSG_WRITE_BUFFER;
+    send(server->sock, &m, sizeof(m), 0);
+    m = 0;
+    send(server->sock, &m, sizeof(m), 0);
 }

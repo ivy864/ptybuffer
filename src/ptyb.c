@@ -24,6 +24,10 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[1], "start_server") == 0) {
             return start_server(sock_domain);
         }
+        else if (strcmp(argv[1], "write_buffer") == 0) {
+            ptyb_msg_write_buffer(sock_domain);
+        }
+
     }
 
     return EXIT_SUCCESS;

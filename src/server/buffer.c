@@ -1,7 +1,9 @@
 #include "server.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 PtybBufferList *ptyb_init_bufferlist() {
     PtybBufferList *list = malloc(sizeof(PtybBufferList));
@@ -86,4 +88,22 @@ void ptyb_buffer_free(PtybBuffer *buffer) {
         free(buffer);
         buffer = next;
     }
+}
+
+int ptyb_write_buffer(PtybBuffer *buffer) {
+    if (buffer == NULL) {
+        return -1;
+    }
+
+    FILE *out = fopen("./buffer.txt", "w");
+
+    while (buffer != NULL) {
+        fprintf(out, "%s", buffer->chunk);
+        buffer = buffer->next;
+    }
+
+    fflush(out);
+    fclose(out);
+
+    return 0;
 }
