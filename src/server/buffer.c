@@ -45,19 +45,33 @@ PtybBufferList *ptyb_add_buffer(PtybBufferList *list, uint32_t cid) {
 }
 
 int ptyb_buffer_insert(PtybBuffer *buffer, char *text) {
-    /*
     int insrtlen;
     insrtlen = strlen(text);
-    */
+
+    if (insrtlen > PTYB_BUFFER_CHUNK_SIZE) {
+        return -1;
+    }
 
     while (PTYB_BUFFER_CHUNK_SIZE - buffer->chunk_len == 1) {
         buffer = buffer->next;
     }
 
-    /* max chunk len - buffer->chunk len
-     */
+    /* max chunk len - buffer->chunk len */
+    int catbytes = PTYB_BUFFER_CHUNK_SIZE - buffer->chunk_len - 1;
 
-    strncat(buffer->chunk, text, PTYB_BUFFER_CHUNK_SIZE - buffer->chunk_len - 1);
+    strncat(buffer->chunk, text, catbytes);
+    buffer->chunk_len = strlen(buffer->chunk);
 
+    insrtlen -= catbytes;
+    if (insrtlen > 0) {
+        buffer->next = ptyb_init_buffer(buffer->cid);
+        buffer = buffer->next;
+
+        //text = text + catbytes;
+
+        strncat(buffer->chunk, text + catbytes, insrtlen);
+        buffer->chunk_len = strlen(buffer->chunk);
+    }
+    
     return 0;
 }

@@ -5,7 +5,7 @@
 #include <sys/un.h>
 #include "../util/utils.h"
 
-#define PTYB_BUFFER_CHUNK_SIZE 1024
+#define PTYB_BUFFER_CHUNK_SIZE 128 
 
 PtybServer *init_server(char *socket_domain);
 
@@ -40,8 +40,15 @@ PtybBufferList *ptyb_add_buffer(PtybBufferList *list, uint32_t cid);
 
 PtybBuffer *ptyb_init_buffer(int cid);
 
+/*
+ * Insert string 'text' into buffer. 
+ * The length of 'text' should not excede PTYB_BUFFER_CHUNK_SIZE
+ *
+ * returns -1 on error.
+ */
 int ptyb_buffer_insert(PtybBuffer *buffer, char *text);
 
+int ptyb_buffer_free(PtybBuffer *buffer);
 
 // message types
 #define PTYBMSSG_CLIENT_ATTACH 1
