@@ -33,10 +33,6 @@ int32_t ptyb_get_next_pid(PtybBufferList *list) {
         return -1;
     }
 
-    /* list->next == null
-     * list->buffer == null
-     */
-
     return pid;
 }
 
@@ -115,7 +111,7 @@ int ptyb_write_buffer(PtybBuffer *buffer) {
     // remove xterm control sequence for setting window title
     system("sed -i 's/.*\\x07//g' ./buffer.txt");
     // I don't actually know what 004l<CR> is but this removes it
-    system("sed -i 's/004l\\x0d//g' $2");
+    system("sed -i 's/004l\\x0d//g' ./buffer.txt");
 
     return 0;
 }
