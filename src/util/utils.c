@@ -18,6 +18,7 @@ PtybServer *ptybserver_alloc() {
 }
 
 void ptybserver_free(PtybServer *server) {
+    unlink(server->addr->sun_path);
     free(server->addr);
     close(server->sock);
     free(server);

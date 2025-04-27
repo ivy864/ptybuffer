@@ -1,4 +1,5 @@
 #include "server.h"
+#include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,6 +97,7 @@ int ptyb_write_buffer(PtybBuffer *buffer) {
     }
 
     FILE *out = fopen("./buffer.txt", "w");
+    // flag for if buffer ended in the midle of an escape sequence
 
     while (buffer != NULL) {
         fprintf(out, "%s", buffer->chunk);
@@ -104,6 +106,16 @@ int ptyb_write_buffer(PtybBuffer *buffer) {
 
     fflush(out);
     fclose(out);
+
+    // strip control codes and other unwanted things using sed
+    // use of system here is probably a security issue. 
+
+    // remove ANSI escape sequences
+    system("sed -i 's/004l\\x0d//g' ./buffer.txt");
+    // remove xterm control sequence for setting window title
+    system("sed -i 's/.*\\x07//g' ./buffer.txt");
+    // I don't actually know what 004l<CR> is but this removes it
+    system("sed -i 's/004l\\x0d//g' $2");
 
     return 0;
 }

@@ -64,7 +64,7 @@ int server_main(PtybServer *server) {
             //ptyb_buffer_free(client_buffer);
             //client_buffer = ptyb_init_buffer(0);
 
-            buffer[bytes - 1] = '\0';
+            buffer[bytes] = '\0';
             ptyb_buffer_insert(client_buffer, buffer);
             
         }
