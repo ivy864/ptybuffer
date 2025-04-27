@@ -9,6 +9,11 @@ int init_shell(int maid);
 int server_connect(char *sock_domain);
 
 int ptyb_message_server(char *sock_domain, char *message);
+
+/*
+ * Connect to server and return a client ID number. If socket file does not
+ * exist, start server and try to connect again.
+ */
 int ptyb_get_cid(char *sock_domain);
 
 /*

@@ -15,14 +15,12 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-void SIGINT_handle(int sig) {
+static void SIGINT_handle(int sig) {
     ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
     exit(0);
 }
 
 int client_main(int master) {
-    signal( SIGINT, SIGINT_handle);
-
     char input[1024];
     int rc = 0;
     printf("main started\n");
@@ -103,9 +101,6 @@ int init_shell(int maid) {
 
     ioctl(0, TIOCSCTTY, 1);
 
-    /* bash: cannot set terminal process group (5908): Inappropriate ioctl for
-     * device bash: no job control in this shell */
-
     execlp("bash", "bash");
 
     return(EXIT_FAILURE);
@@ -119,6 +114,8 @@ int init_client(char *sock_domain) {
     int master, maid, rc;
     uint32_t cid = ptyb_get_cid(sock_domain);
     printf("client recieved cid %d.\n", cid);
+
+    signal( SIGINT, SIGINT_handle);
 
     master = posix_openpt(O_RDWR);
     if (master < 0) {
