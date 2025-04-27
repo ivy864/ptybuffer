@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 700
+
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -6,11 +8,20 @@
 #include <unistd.h>
 #include "server.h"
 #include "../util/utils.h"
+#include <signal.h>
 
 #define __USE_MISC
 #include <sys/un.h>
 
-int server_main(PtybServer *server) {
+static PtybServer *server;
+
+// free server when ctrl-C  is pressed. Also removes socket file.
+static void SIGINT_handle(int sig) {
+    ptybserver_free(server);
+    exit(0);
+}
+
+int server_main() {
     char buffer [1024];
     // number of connected clients
     uint32_t clients = 0;
@@ -61,8 +72,6 @@ int server_main(PtybServer *server) {
         }
         else {
             int bytes = read(connection, buffer, 1023);
-            //ptyb_buffer_free(client_buffer);
-            //client_buffer = ptyb_init_buffer(0);
 
             buffer[bytes] = '\0';
             ptyb_buffer_insert(client_buffer, buffer);
@@ -105,8 +114,6 @@ PtybServer *init_server(char *socket_domain) {
 
     struct sockaddr *eek = (struct sockaddr *) server->addr;
 
-
-// (struct sockaddr *) server->addr
     if (bind(server->sock, eek, SUN_LEN(server->addr)) < 0) {
         fprintf(stderr, "Error %d on bind()\n", errno);
         fprintf(stderr, "%s\n", strerror(errno));
@@ -118,10 +125,10 @@ PtybServer *init_server(char *socket_domain) {
 }
 
 int start_server(char *domain) {
-    //if (fork() == 0) {
-        PtybServer *server = init_server(domain);
-        exit(server_main(server));
-    //}
+    signal( SIGINT, SIGINT_handle);
+
+    server = init_server(domain);
+    exit(server_main());
 
     return 0;
 }
