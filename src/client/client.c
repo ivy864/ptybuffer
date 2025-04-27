@@ -7,58 +7,65 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <sys/select.h>
+#include <sys/poll.h>
+#include <signal.h>
 
 #define __USE_MISC
 #include "client.h"
 #include <termios.h>
 #include <sys/ioctl.h>
 
+void SIGINT_handle(int sig) {
+    ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
+    exit(0);
+}
+
 int client_main(int master) {
+    signal( SIGINT, SIGINT_handle);
+
     char input[1024];
     int rc = 0;
     printf("main started\n");
 
-    fd_set fd_in;
+    struct pollfd poll_list[2];
+    poll_list[0].fd = master;
+    poll_list[1].fd = 0;
+
+    poll_list[0].events = POLLIN;
+    poll_list[1].events = POLLIN;
     
     while (1) {
-        FD_ZERO(&fd_in);
-        FD_SET(0, &fd_in);
-        FD_SET(master, &fd_in);
+        rc = poll(poll_list, 2, -1);
 
-        // TODO: use that other function. see select man page
-        rc = select(master + 1, &fd_in, NULL, NULL, NULL);
-
-        if (rc == -1) {
-            fprintf(stderr, "Error %d on select()\n%s\n", errno, strerror(errno));
+        if (rc < 0) {
+            fprintf(stderr, "Error %d on poll()\n%s\n", errno, strerror(errno));
             exit(1);
         }
         else {
-            if (FD_ISSET(0, &fd_in)) {
-                rc = read(0, input, sizeof(input));
+            if ((poll_list[0].revents & POLLIN) == POLLIN) {
+                rc = read(master, input, sizeof(input) - 1);
+                input[rc] = 0;
                 if (rc > 0) {
-                    write(master, input, rc);
                     write(1, input, rc);
                     ptyb_message_server("/run/user/1000/ptyb.sock", input);
                 }
-                else {
-                    if (rc < 0) {
-                        fprintf(stderr, "Error %d on read stdin\n%s\n", errno, strerror(errno));
-                        exit(1);
-                    }
+                else if (rc < 0) {
+                    fprintf(stderr, "Error %d on read stdin\n%s\n", errno, strerror(errno));
+                    exit(1);
                 }
             }
+            if ((poll_list[1].revents & POLLIN) == POLLIN) {
+                rc = read(0, input, sizeof(input) - 1);
+                input[rc] = '\0';
 
-            if (FD_ISSET(master, &fd_in)) {
-                rc = read(master, input, sizeof(input));
                 if (rc > 0) {
-                    write(1, input, rc);
+                    write(master, input, rc);
+                    ptyb_message_server("/run/user/1000/ptyb.sock", input);
                 }
-                else {
-                    if (rc < 0) {
-                        fprintf(stderr, "Error %d on read master PTY\n%s\n", errno, strerror(errno));
-                        exit(1);
-                    }
+
+                else if (rc < 0) {
+                    fprintf(stderr, "Error %d on read master PTY\n%s\n", errno, strerror(errno));
+                    exit(1);
                 }
             }
         }

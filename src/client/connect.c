@@ -59,3 +59,15 @@ void ptyb_msg_write_buffer(char *sock_domain) {
     m = 0;
     send(server->sock, &m, sizeof(m), 0);
 }
+
+void ptyb_msg_client_closed(char *sock_domain) {
+    PtybServer *server = ptyb_client_connect(sock_domain);
+    int32_t m = -1;
+
+    send(server->sock, &m, sizeof(m), 0);
+    m = PTYBMSSG_CLIENT_DETACH;
+    send(server->sock, &m, sizeof(m), 0);
+    m = 0;
+    send(server->sock, &m, sizeof(m), 0);
+
+}

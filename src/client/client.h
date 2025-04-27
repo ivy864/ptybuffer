@@ -16,4 +16,9 @@ int ptyb_get_cid(char *sock_domain);
  */
 void ptyb_msg_write_buffer(char *sock_domain);
 
+/*
+ * signal to server that a client has closed.
+ */
+void ptyb_msg_client_closed(char *sock_domain);
+
 #endif
