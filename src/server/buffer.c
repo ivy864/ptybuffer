@@ -49,6 +49,9 @@ int ptyb_buffer_insert(PtybBuffer *buffer, char *text) {
     }
 
     while (PTYB_BUFFER_CHUNK_SIZE - buffer->chunk_len == 1) {
+        if (buffer->next == NULL) {
+            buffer->next = ptyb_init_buffer(buffer->cid);
+        }
         buffer = buffer->next;
     }
 
@@ -91,8 +94,8 @@ int ptyb_write_buffer(PtybBuffer *buffer) {
         return -1;
     }
 
-    FILE *out = fopen("./buffer.txt", "w");
-    // flag for if buffer ended in the midle of an escape sequence
+    FILE *out = fopen("./ptyb_buffer.txt", "w");
+    // flag for if buffer ended in the middle of an escape sequence
 
     while (buffer != NULL) {
         fprintf(out, "%s", buffer->chunk);
@@ -106,11 +109,11 @@ int ptyb_write_buffer(PtybBuffer *buffer) {
     // use of system here is probably a security issue. 
 
     // remove ANSI escape sequences
-    system("sed -i 's/\x1b\[[0-9;?]*[ml]//g' ./buffer.txt");
+    system("sed -i 's/\x1b\[[0-9;?]*[ml]//g' ./ptyb_buffer.txt");
     // remove xterm control sequence for setting window title
-    system("sed -i 's/.*\\x07//g' ./buffer.txt");
+    system("sed -i 's/.*\\x07//g' ./ptyb_buffer.txt");
     // I don't actually know what 004l<CR> is but this removes it
-    system("sed -i 's/004l\\x0d//g' ./buffer.txt");
+    system("sed -i 's/004l\\x0d//g' ./ptyb_buffer.txt");
 
     return 0;
 }
