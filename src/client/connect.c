@@ -90,8 +90,9 @@ server_failure:
     exit(EXIT_FAILURE);
 }
 
-void ptyb_msg_write_buffer(char *sock_domain, int buffer) {
+int ptyb_msg_write_buffer(char *sock_domain, int buffer) {
     PtybServer *server = ptyb_client_connect(sock_domain);
+    int rv;
     if (server == NULL) {
         fprintf(stderr, "Error %d on connect()\n%s\n", errno, strerror(errno));
         exit(EXIT_FAILURE);
@@ -104,6 +105,10 @@ void ptyb_msg_write_buffer(char *sock_domain, int buffer) {
     send(server->sock, &m, sizeof(m), 0);
     m = buffer;
     send(server->sock, &m, sizeof(m), 0);
+
+    // server sends back an int when it's done
+    read(server->sock, &rv, sizeof(rv));
+    return rv;
 }
 
 void ptyb_msg_client_closed(char *sock_domain) {

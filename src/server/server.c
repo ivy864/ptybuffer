@@ -74,6 +74,8 @@ int server_main() {
                     else {
                         ptyb_write_buffer(client_buffer);
                     }
+                    int tmp = 1;
+                    send(connection, &tmp, sizeof(tmp), 0);
                     break;
             }
         }
