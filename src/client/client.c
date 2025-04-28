@@ -17,13 +17,19 @@
 
 static void SIGINT_handle(int sig) {
     // this shouldn't be hard-coded. perhapse I will fix this some other day.
-    ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
+    uint32_t uid = getuid();
+    char sock_domain[108];
+    snprintf(sock_domain, 108, "/run/user/%d/ptyb.sock", uid);
+    ptyb_msg_client_closed(sock_domain);
     exit(1);
 }
 
 // child (shell) exits -- exit main
 static void SIGCHLD_handle(int sig) {
-    ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
+    uint32_t uid = getuid();
+    char sock_domain[108];
+    snprintf(sock_domain, 108, "/run/user/%d/ptyb.sock", uid);
+    ptyb_msg_client_closed(sock_domain);
     exit(0);
 }
 
@@ -58,10 +64,6 @@ int client_main(int master) {
                     write(1, input, rc);
                     ptyb_message_server("/run/user/1000/ptyb.sock", input, 0);
                 }
-                else if (rc == 0) {
-                    //printf("\nbyebye\n");
-                    //ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
-                }
                 else {
                     fprintf(stderr, "Error %d on read master\n%s\n", errno, strerror(errno));
                     exit(1);
@@ -76,12 +78,10 @@ int client_main(int master) {
                     write(master, input, rc);
                     ptyb_message_server("/run/user/1000/ptyb.sock", input, 1);
                 }
-                // probably ctrl-d, exit.
+                // if rc == 0, ctrl-d probably happened -- send EOT to maid.
                 else if (rc == 0) {
                     char tmp = 4;
                     write(master, &tmp, 1);
-                    //printf("\nexit\n");
-                    //ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
                 }
                 else {
                     fprintf(stderr, "Error %d on read stdin\n%s\n", errno, strerror(errno));
