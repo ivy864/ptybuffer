@@ -23,12 +23,14 @@ static void SIGINT_handle(int sig) {
 
 int server_main() {
     char buffer [1024];
+    int clearflag = 1;
     // number of connected clients
     uint32_t clients = 0;
     // id of connected client
     int32_t conid;
     uint32_t mtype;
 
+    PtybBuffer *prev_buffer = NULL;
     PtybBuffer *client_buffer = ptyb_init_buffer(0);
 
     listen(server->sock, 5);
@@ -66,11 +68,23 @@ int server_main() {
                     }
                     break;
                 case PTYBMSSG_WRITE_BUFFER:
-                    ptyb_write_buffer(client_buffer);
+                    if (conid == 1) {
+                        ptyb_write_buffer(prev_buffer);
+                    }
+                    else {
+                        ptyb_write_buffer(client_buffer);
+                    }
                     break;
             }
         }
         else {
+            if (conid == 1 && clearflag == 0) {
+                ptyb_buffer_free(prev_buffer);
+                prev_buffer = client_buffer;
+                client_buffer = ptyb_init_buffer(0);
+            }
+            clearflag = conid;
+
             int bytes = read(connection, buffer, 1023);
 
             buffer[bytes] = '\0';

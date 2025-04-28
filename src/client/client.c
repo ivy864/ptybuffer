@@ -16,6 +16,7 @@
 #include <sys/ioctl.h>
 
 static void SIGINT_handle(int sig) {
+    // this shouldn't be hard-coded. perhapse I will fix this some other day.
     ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
     exit(1);
 }
@@ -55,7 +56,7 @@ int client_main(int master) {
 
                 if (rc > 0) {
                     write(1, input, rc);
-                    ptyb_message_server("/run/user/1000/ptyb.sock", input);
+                    ptyb_message_server("/run/user/1000/ptyb.sock", input, 0);
                 }
                 else if (rc == 0) {
                     //printf("\nbyebye\n");
@@ -73,7 +74,7 @@ int client_main(int master) {
 
                 if (rc > 0) {
                     write(master, input, rc);
-                    ptyb_message_server("/run/user/1000/ptyb.sock", input);
+                    ptyb_message_server("/run/user/1000/ptyb.sock", input, 1);
                 }
                 // probably ctrl-d, exit.
                 else if (rc == 0) {
@@ -104,6 +105,8 @@ int init_shell(int maid) {
     new_term_settings = maid_orig_term_settings;
     cfmakeraw(&new_term_settings);
     tcsetattr(maid, TCSANOW, &new_term_settings);
+
+    setenv("ISPTYB", "true", 1);
 
     // close std streams, open pty as std streams
     close(0);

@@ -24,7 +24,13 @@ int main(int argc, char *argv[])
             return start_server(sock_domain);
         }
         else if (strcmp(argv[1], "write") == 0) {
-            ptyb_msg_write_buffer(sock_domain);
+            char *isptyb = getenv("ISPTYB");
+            if (isptyb != NULL) {
+                ptyb_msg_write_buffer(sock_domain, 1);
+            }
+            else {
+                ptyb_msg_write_buffer(sock_domain, 0);
+            }
 
             if (fork() == 0) {
                 // if an application is specified, use that. otherwise use default application for the given MIME type

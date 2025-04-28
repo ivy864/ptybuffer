@@ -29,8 +29,7 @@ PtybServer *ptyb_client_connect(char *sock_domain) {
     return server;
 }
 
-int ptyb_message_server(char *sock_domain, char *message) {
-    int m = 1;
+int ptyb_message_server(char *sock_domain, char *message, int m) {
     PtybServer *server = ptyb_client_connect(sock_domain);
 
     if (server == NULL) {
@@ -91,7 +90,7 @@ server_failure:
     exit(EXIT_FAILURE);
 }
 
-void ptyb_msg_write_buffer(char *sock_domain) {
+void ptyb_msg_write_buffer(char *sock_domain, int buffer) {
     PtybServer *server = ptyb_client_connect(sock_domain);
     if (server == NULL) {
         fprintf(stderr, "Error %d on connect()\n%s\n", errno, strerror(errno));
@@ -103,7 +102,7 @@ void ptyb_msg_write_buffer(char *sock_domain) {
     send(server->sock, &m, sizeof(m), 0);
     m = PTYBMSSG_WRITE_BUFFER;
     send(server->sock, &m, sizeof(m), 0);
-    m = 0;
+    m = buffer;
     send(server->sock, &m, sizeof(m), 0);
 }
 

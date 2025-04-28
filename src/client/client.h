@@ -8,7 +8,7 @@ int init_shell(int maid);
 
 int server_connect(char *sock_domain);
 
-int ptyb_message_server(char *sock_domain, char *message);
+int ptyb_message_server(char *sock_domain, char *message, int m);
 
 /*
  * Connect to server and return a client ID number. If socket file does not
@@ -19,7 +19,7 @@ int ptyb_get_cid(char *sock_domain);
 /*
  * send write_buffer signal to server
  */
-void ptyb_msg_write_buffer(char *sock_domain);
+void ptyb_msg_write_buffer(char *sock_domain, int buffer);
 
 /*
  * signal to server that a client has closed.
