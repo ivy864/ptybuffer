@@ -42,3 +42,31 @@ void ptybserver_sock_init(PtybServer *server, char *socket_domain) {
     strncpy(server->addr->sun_path, socket_domain, sizeof(server->addr->sun_path));
 
 }
+
+int ptyb_format_buffer_html() {
+    FILE *out = fopen("./formatted_buffer.html", "w");
+    FILE *buffer = fopen("./buffer.txt", "r");
+    fprintf(out, "<!DOCTYPE html><html>\n<head>\n<link rel='stylesheet' href='style.css' />\n");
+    fprintf(out, "</head><body>\n<table>\n");
+
+    char line[256];
+
+    while (fgets(line, 256, buffer)) {
+        fprintf(out, "<tr>\n");
+        char *tok = strtok(line, " \t");
+
+        while (tok != NULL) {
+            fprintf(out, "<td>%s</td>\n", tok);
+            tok = strtok(NULL, " \t");
+        }
+
+        fprintf(out, "</tr>\n");
+    }
+    fprintf(out, "</table></body></html>");
+
+    fflush(out);
+
+    fclose(out);
+    fclose(buffer);
+    return 0;
+}

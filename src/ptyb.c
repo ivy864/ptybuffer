@@ -32,13 +32,19 @@ int main(int argc, char *argv[])
                 ptyb_msg_write_buffer(sock_domain, 0);
             }
 
-            if (fork() == 0) {
-                // if an application is specified, use that. otherwise use default application for the given MIME type
-                if (argc == 3) {
-                    execlp(argv[2], argv[2], "./buffer.txt");
-                }
-                else {
-                    system("xdg-open ./buffer.txt");
+            if (argc >= 3 && strcmp(argv[2], "html") == 0) {
+                ptyb_format_buffer_html();
+                system("xdg-open ./buffer.txt");
+            }
+            else {
+                if (fork() == 0) {
+                    // if an application is specified, use that. otherwise use default application for the given MIME type
+                    if (argc >= 3) {
+                        execlp(argv[2], argv[2], "./buffer.txt");
+                    }
+                    else {
+                        system("xdg-open ./buffer.txt");
+                    }
                 }
             }
         }

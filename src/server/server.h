@@ -55,6 +55,9 @@ void ptyb_buffer_free(PtybBuffer *buffer);
  */
 int ptyb_write_buffer(PtybBuffer *buffer);
 
+int ptyb_format_buffer_html();
+
+
 // message types
 #define PTYBMSSG_CLIENT_ATTACH 1
 #define PTYBMSSG_CLIENT_DETACH 2
