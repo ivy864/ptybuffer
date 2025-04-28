@@ -17,6 +17,12 @@
 
 static void SIGINT_handle(int sig) {
     ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
+    exit(1);
+}
+
+// child (shell) exits -- exit main
+static void SIGCHLD_handle(int sig) {
+    ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
     exit(0);
 }
 
@@ -24,6 +30,8 @@ int client_main(int master) {
     char input[1024];
     int rc = 0;
     printf("main started\n");
+
+    signal(SIGCHLD, SIGCHLD_handle);
 
     struct pollfd poll_list[2];
     poll_list[0].fd = master;
@@ -40,18 +48,25 @@ int client_main(int master) {
             exit(1);
         }
         else {
+            // can read from master end of PTY
             if ((poll_list[0].revents & POLLIN) == POLLIN) {
                 rc = read(master, input, sizeof(input) - 1);
                 input[rc] = 0;
+
                 if (rc > 0) {
                     write(1, input, rc);
                     ptyb_message_server("/run/user/1000/ptyb.sock", input);
                 }
-                else if (rc < 0) {
-                    fprintf(stderr, "Error %d on read stdin\n%s\n", errno, strerror(errno));
+                else if (rc == 0) {
+                    //printf("\nbyebye\n");
+                    //ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
+                }
+                else {
+                    fprintf(stderr, "Error %d on read master\n%s\n", errno, strerror(errno));
                     exit(1);
                 }
             }
+            // can read from STDIN
             if ((poll_list[1].revents & POLLIN) == POLLIN) {
                 rc = read(0, input, sizeof(input) - 1);
                 input[rc] = '\0';
@@ -60,21 +75,25 @@ int client_main(int master) {
                     write(master, input, rc);
                     ptyb_message_server("/run/user/1000/ptyb.sock", input);
                 }
-
-                else if (rc < 0) {
-                    fprintf(stderr, "Error %d on read master PTY\n%s\n", errno, strerror(errno));
+                // probably ctrl-d, exit.
+                else if (rc == 0) {
+                    char tmp = 4;
+                    write(master, &tmp, 1);
+                    //printf("\nexit\n");
+                    //ptyb_msg_client_closed("/run/user/1000/ptyb.sock");
+                }
+                else {
+                    fprintf(stderr, "Error %d on read stdin\n%s\n", errno, strerror(errno));
                     exit(1);
                 }
             }
         }
     }
 
-
     return EXIT_SUCCESS;
 }
 
 int init_shell(int maid) {
-    printf("???\n");
     struct termios maid_orig_term_settings;
     struct termios new_term_settings;
 
@@ -115,7 +134,7 @@ int init_client(char *sock_domain) {
     uint32_t cid = ptyb_get_cid(sock_domain);
     printf("client recieved cid %d.\n", cid);
 
-    signal( SIGINT, SIGINT_handle);
+    signal(SIGINT, SIGINT_handle);
 
     master = posix_openpt(O_RDWR);
     if (master < 0) {
