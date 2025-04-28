@@ -19,7 +19,7 @@ int ptyb_get_cid(char *sock_domain);
 /*
  * send write_buffer signal to server
  */
-void ptyb_msg_write_buffer(char *sock_domain, int buffer);
+int ptyb_msg_write_buffer(char *sock_domain, int buffer);
 
 /*
  * signal to server that a client has closed.
