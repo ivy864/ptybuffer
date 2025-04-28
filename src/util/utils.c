@@ -44,11 +44,15 @@ void ptybserver_sock_init(PtybServer *server, char *socket_domain) {
 }
 
 int ptyb_format_buffer_html() {
-    FILE *out = fopen("./formatted_buffer.html", "w");
-    FILE *buffer = fopen("./buffer.txt", "r");
+    FILE *out = fopen("./ptyb_formatted_buffer.html", "w");
+    FILE *buffer = fopen("ptyb_buffer.txt", "r");
     fprintf(out, "<!DOCTYPE html><html>\n<head>\n<link rel='stylesheet' href='style.css' />\n");
     fprintf(out, "</head><body>\n<table>\n");
 
+    if (buffer == NULL) {
+        printf("FATAL: ptyb_buffer.txt could not be opened! Perhaps something is wrong with the server?\n");
+        exit(1);
+    }
     char line[256];
 
     while (fgets(line, 256, buffer)) {
