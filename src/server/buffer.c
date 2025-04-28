@@ -107,7 +107,7 @@ int ptyb_write_buffer(PtybBuffer *buffer) {
     // use of system here is probably a security issue. 
 
     // remove ANSI escape sequences
-    system("sed -i 's/004l\\x0d//g' ./buffer.txt");
+    system("sed -i 's/\x1b\[[0-9;]*m//g' ./buffer.txt");
     // remove xterm control sequence for setting window title
     system("sed -i 's/.*\\x07//g' ./buffer.txt");
     // I don't actually know what 004l<CR> is but this removes it
